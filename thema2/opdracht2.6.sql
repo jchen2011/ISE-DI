@@ -18,3 +18,12 @@ GROUP BY o.stuknr, o.titel, o.jaartal
 
 SELECT * FROM meeste_bezettingsregels
 
+-- 2.
+SELECT s.stuknr
+FROM Stuk s
+INNER JOIN Bezettingsregel b 
+ON s.stuknr = b.stuknr
+WHERE aantal = (SELECT aantal FROM meeste_bezettingsregels)
+
+
+
