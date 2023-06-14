@@ -11,7 +11,7 @@ FROM Stuk
 -- 2.
 WITH speelduur AS (
 SELECT stuknr, speelduur,
-CASE 
+CASE
 	WHEN speelduur BETWEEN 0 AND 3 THEN 'Kort'
 	WHEN speelduur BETWEEN 3 AND 5 THEN 'Gemiddeld'
 	WHEN speelduur > 5 THEN 'Lang'

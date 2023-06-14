@@ -1,29 +1,38 @@
 -- 1.
-WITH oudste_stuk AS (
-select s2.stuknr, s2.titel, s2.jaartal
-from stuk s2
-where exists(
-    select count(*) from stuk s
-    where s.jaartal < s2.jaartal
-    having count(*) < 1)
-),
-
-meeste_bezettingsregels AS (
-select o.stuknr, o.titel, o.jaartal, SUM(b.aantal) as aantal
-FROM oudste_stuk o
-INNER JOIN Bezettingsregel b
-ON o.stuknr = b.stuknr
-GROUP BY o.stuknr, o.titel, o.jaartal
-)
-
-SELECT * FROM meeste_bezettingsregels
+WITH oudste_stukken
+         AS
+         (
+             SELECT stuknr
+             FROM Stuk
+             WHERE jaartal = (SELECT MIN(jaartal) FROM Stuk)
+         )
+SELECT TOP 1 o.stuknr, SUM(b.aantal)
+FROM oudste_stukken o
+         INNER JOIN Bezettingsregel b
+                    ON o.stuknr = b.stuknr
+GROUP BY o.stuknr
+ORDER BY SUM(aantal) DESC
 
 -- 2.
-SELECT s.stuknr
-FROM Stuk s
-INNER JOIN Bezettingsregel b 
-ON s.stuknr = b.stuknr
-WHERE aantal = (SELECT aantal FROM meeste_bezettingsregels)
-
+    WITH oudste_stukken
+AS
+(
+SELECT stuknr
+FROM Stuk
+WHERE jaartal = (SELECT MIN(jaartal) FROM Stuk)
+), oudste_stukken_en_meeste_bezettingsregels AS	(
+SELECT TOP 1 o.stuknr, SUM(b.aantal) AS total_aantal
+FROM oudste_stukken o
+INNER JOIN Bezettingsregel b
+ON o.stuknr = b.stuknr
+GROUP BY o.stuknr
+ORDER BY SUM(aantal) DESC
+)
+SELECT b.stuknr, osemb.total_aantal, SUM(b.aantal) AS total_aantal
+FROM oudste_stukken_en_meeste_bezettingsregels osemb
+         INNER JOIN Bezettingsregel b
+                    ON osemb.stuknr != b.stuknr
+GROUP BY b.stuknr, osemb.total_aantal
+HAVING SUM(b.aantal) = osemb.total_aantal
 
 
